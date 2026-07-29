@@ -2,10 +2,15 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { AmbientCanvas } from "@/components/ambient-canvas";
 
-import { backgroundImage } from "@/lib/env";
 import type { Sky } from "@/lib/sky";
 
-export const Scene = ({ sky }: { sky: Sky }) => (
+export const Scene = ({
+  sky,
+  backgroundImage,
+}: {
+  sky: Sky;
+  backgroundImage: string;
+}) => (
   <div
     aria-hidden="true"
     className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"

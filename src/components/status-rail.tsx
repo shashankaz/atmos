@@ -1,6 +1,6 @@
 import { IconSunrise, IconSunset } from "@tabler/icons-react";
 
-import { weatherConfig } from "@/lib/env";
+import type { WeatherConfig } from "@/lib/settings";
 
 import type { Weather } from "@/types/weather";
 
@@ -25,14 +25,19 @@ const Item = ({
   </span>
 );
 
-export const StatusRail = ({ weather }: { weather: Weather | null }) => (
+export const StatusRail = ({
+  weather,
+  config,
+}: {
+  weather: Weather | null;
+  config: WeatherConfig | null;
+}) => (
   <header className="text-ink/55 flex items-start justify-between gap-6 font-mono text-[0.58rem] tracking-[0.28em] uppercase sm:text-[0.62rem]">
     <div className="flex flex-col gap-1.5">
       <span className="text-ink tracking-[0.5em]">Atmos</span>
-      {weatherConfig && (
+      {config && (
         <span className="text-ink/40 tracking-[0.2em]">
-          {coordinate(weatherConfig.lat, "N", "S")}{" "}
-          {coordinate(weatherConfig.lon, "E", "W")}
+          {coordinate(config.lat, "N", "S")} {coordinate(config.lon, "E", "W")}
         </span>
       )}
     </div>

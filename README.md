@@ -25,20 +25,30 @@ hook and helper is a named export.
 
 ```bash
 pnpm install
-cp .env.example .env   # then fill it in
 pnpm dev
 ```
 
-| Variable                   | Required | Notes                                                                              |
-| -------------------------- | -------- | ---------------------------------------------------------------------------------- |
-| `VITE_OPENWEATHER_API_KEY` | yes      | From https://home.openweathermap.org/api_keys — new keys take ~10 min to activate. |
-| `VITE_WEATHER_LAT`         | yes      | Latitude, e.g. `12.9716`                                                           |
-| `VITE_WEATHER_LON`         | yes      | Longitude, e.g. `77.5946`                                                          |
-| `VITE_WEATHER_UNITS`       | no       | `metric` (default), `imperial`, or `standard`                                      |
-| `VITE_BACKGROUND_IMAGE`    | no       | Image URL or a path under `public/`. Empty = animated gradient.                    |
+There is no build-time configuration and no `.env` — the page is configured
+from inside the page. Open the gear in the bottom-right corner (or **Open
+settings**, which sits under the clock next to a list of whatever is still
+missing) and fill in:
 
-Vite only exposes variables prefixed with `VITE_`, and it reads `.env` at
-**server start** — restart `pnpm dev` after editing it.
+| Setting              | Required | Notes                                                                              |
+| -------------------- | -------- | ---------------------------------------------------------------------------------- |
+| OpenWeatherMap key   | yes      | From https://home.openweathermap.org/api_keys — new keys take ~10 min to activate. |
+| Latitude / Longitude | yes      | Type them, or press **Use my location** to fill both from the browser.             |
+| Units                | no       | Metric (default), Imperial, or Kelvin.                                             |
+| Background image     | no       | Image URL or a path under `public/`. Empty = animated gradient.                    |
+
+Everything is saved in `localStorage` under `atmos:settings` and applies
+immediately — no reload, no restart. Changing the location or units retires the
+cached reading and refetches. Other open tabs pick the change up too.
+
+Because every visitor supplies their own key, the built page is safe to deploy
+publicly. The key never leaves the browser except in the request to
+OpenWeatherMap; **anyone with access to the browser profile can read it**, so
+use a key you are willing to keep there, and revoke it from the OpenWeatherMap
+dashboard if that stops being true.
 
 The app calls the OpenWeatherMap [Current Weather](https://openweathermap.org/current)
 endpoint (`/data/2.5/weather`), which is included in the free tier.
@@ -64,10 +74,6 @@ In Chrome: **Settings → On startup → Open a specific page**, and
 Chrome only lets extensions replace the _new tab_ page, so for that you would
 need to wrap `dist/` in a small extension with a `chrome_url_overrides.newtab`
 manifest entry.
-
-> The API key is compiled into the JavaScript bundle, as it must be for any
-> client-only page. Keep the deployment private, and don't commit `.env`
-> (it is gitignored).
 
 ## Bookmarks
 
@@ -115,10 +121,13 @@ src/
 │   ├── weather-glyph.tsx       Tabler icon per condition
 │   ├── dock.tsx                bookmark dock, magnification, edit mode
 │   ├── dock-item.tsx
-│   └── bookmark-dialog.tsx
-├── hooks/                      use-now, use-weather, use-local-storage
-├── lib/                        env (zod), weather client, sky, cookies, time,
-│                               bookmarks
+│   ├── bookmark-dialog.tsx
+│   ├── settings-button.tsx     bottom-right gear
+│   └── settings-dialog.tsx     key, coordinates, units, background
+├── hooks/                      use-now, use-weather, use-settings,
+│                               use-local-storage
+├── lib/                        settings store (zod + localStorage), weather
+│                               client, sky, cookies, time, bookmarks
 └── types/
 ```
 

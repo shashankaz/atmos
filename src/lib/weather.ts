@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { WeatherConfig, WeatherUnits } from "@/lib/env";
+import type { WeatherConfig, WeatherUnits } from "@/lib/settings";
 
 import type { Weather } from "@/types/weather";
 

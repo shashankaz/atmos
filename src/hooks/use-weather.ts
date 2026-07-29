@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { readCookie, writeCookie } from "@/lib/cookies";
-import { weatherConfig } from "@/lib/env";
+import type { WeatherConfig } from "@/lib/settings";
 import { fetchWeather } from "@/lib/weather";
 
 import type { Weather } from "@/types/weather";
@@ -11,60 +11,94 @@ const CACHE_TTL = 15 * 60 * 1000;
 
 export type WeatherStatus = "unconfigured" | "loading" | "ready" | "error";
 
-const readCache = (): Weather | null => {
+interface CacheEntry {
+  signature: string;
+  weather: Weather;
+}
+
+interface Reading {
+  signature: string;
+  weather: Weather | null;
+  error: string | null;
+}
+
+const signatureOf = (config: WeatherConfig | null) =>
+  config ? `${config.lat}:${config.lon}:${config.units}` : "";
+
+const readCache = (config: WeatherConfig): Weather | null => {
   try {
     const stored = readCookie(COOKIE_NAME);
     if (!stored) return null;
 
-    const cached = JSON.parse(stored) as Weather;
-    return Date.now() - cached.fetchedAt < CACHE_TTL ? cached : null;
+    const cached = JSON.parse(stored) as CacheEntry;
+    if (cached.signature !== signatureOf(config)) return null;
+
+    return Date.now() - cached.weather.fetchedAt < CACHE_TTL
+      ? cached.weather
+      : null;
   } catch {
     return null;
   }
 };
 
-const writeCache = (weather: Weather) => {
+const writeCache = (config: WeatherConfig, weather: Weather) => {
   try {
-    writeCookie(COOKIE_NAME, JSON.stringify(weather), CACHE_TTL / 1000);
+    const entry: CacheEntry = { signature: signatureOf(config), weather };
+    writeCookie(COOKIE_NAME, JSON.stringify(entry), CACHE_TTL / 1000);
   } catch {}
 };
 
-export const useWeather = () => {
-  const [weather, setWeather] = useState<Weather | null>(() =>
-    weatherConfig ? readCache() : null,
+const initialReading = (config: WeatherConfig | null): Reading => ({
+  signature: signatureOf(config),
+  weather: config ? readCache(config) : null,
+  error: null,
+});
+
+export const useWeather = (config: WeatherConfig | null) => {
+  const [reading, setReading] = useState<Reading>(() => initialReading(config));
+
+  const signature = signatureOf(config);
+
+  const current =
+    reading.signature === signature ? reading : initialReading(config);
+
+  const load = useCallback(
+    async (signal?: AbortSignal) => {
+      if (!config) return;
+
+      const key = signatureOf(config);
+
+      try {
+        const next = await fetchWeather(config, signal);
+        if (signal?.aborted) return;
+
+        setReading({ signature: key, weather: next, error: null });
+        writeCache(config, next);
+      } catch (cause) {
+        if (signal?.aborted) return;
+
+        const message =
+          cause instanceof Error ? cause.message : "Could not load weather";
+
+        setReading((previous) => ({
+          signature: key,
+          weather: previous.signature === key ? previous.weather : null,
+          error: message,
+        }));
+      }
+    },
+    [config],
   );
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const load = useCallback(async (signal?: AbortSignal) => {
-    if (!weatherConfig) return;
-
-    setIsLoading(true);
-
-    try {
-      const next = await fetchWeather(weatherConfig, signal);
-      if (signal?.aborted) return;
-
-      setWeather(next);
-      setError(null);
-      writeCache(next);
-    } catch (cause) {
-      if (signal?.aborted) return;
-      setError(
-        cause instanceof Error ? cause.message : "Could not load weather",
-      );
-    } finally {
-      if (!signal?.aborted) setIsLoading(false);
-    }
-  }, []);
 
   useEffect(() => {
-    if (!weatherConfig) return;
+    if (!config) return;
 
     const controller = new AbortController();
+
     const refresh = () => {
       if (document.visibilityState !== "visible") return;
-      if (readCache()) return;
+      if (readCache(config)) return;
+
       void load(controller.signal);
     };
 
@@ -78,21 +112,20 @@ export const useWeather = () => {
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", refresh);
     };
-  }, [load]);
+  }, [config, load]);
 
-  const status: WeatherStatus = !weatherConfig
+  const status: WeatherStatus = !config
     ? "unconfigured"
-    : weather
+    : current.weather
       ? "ready"
-      : error
+      : current.error
         ? "error"
         : "loading";
 
   return {
-    weather,
-    error,
+    weather: current.weather,
+    error: current.error,
     status,
-    isRefreshing: isLoading,
     refresh: () => void load(),
   };
 };

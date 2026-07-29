@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 import { WeatherGlyph } from "@/components/weather-glyph";
 
-import { weatherConfig, weatherConfigIssues } from "@/lib/env";
+import type { WeatherUnits } from "@/lib/settings";
 import type { SkyPhase } from "@/lib/sky";
 import { compassPoint, temperatureUnit, windUnit } from "@/lib/weather";
 
@@ -17,10 +17,12 @@ interface WeatherReadoutProps {
   status: WeatherStatus;
   error: string | null;
   phase: SkyPhase;
+  units: WeatherUnits;
+  missing: string[];
   onRefresh: () => void;
+  onConfigure: () => void;
 }
 
-const units = weatherConfig?.units ?? "metric";
 const round = (value: number) => Math.round(value).toString();
 
 const Metric = ({ label, value }: { label: string; value: string }) => (
@@ -43,24 +45,51 @@ const Notice = ({ children }: { children: React.ReactNode }) => (
   </p>
 );
 
+const Action = ({
+  onClick,
+  children,
+}: {
+  onClick: () => void;
+  children: React.ReactNode;
+}) => (
+  <motion.button
+    type="button"
+    onClick={onClick}
+    whileHover={{ scale: 1.06 }}
+    whileTap={{ scale: 0.96 }}
+    className="text-accent/80 hover:text-accent font-mono text-[0.6rem] tracking-[0.3em] uppercase"
+  >
+    {children}
+  </motion.button>
+);
+
 export const WeatherReadout = ({
   weather,
   status,
   error,
   phase,
+  units,
+  missing,
   onRefresh,
+  onConfigure,
 }: WeatherReadoutProps) => {
   if (status === "unconfigured") {
     return (
-      <Notice>
-        Weather is off — set VITE_OPENWEATHER_API_KEY, VITE_WEATHER_LAT and
-        VITE_WEATHER_LON in .env, then restart the dev server.
-        {weatherConfigIssues.length > 0 && (
-          <span className="text-ink/35 mt-2 block normal-case">
-            {weatherConfigIssues.join(" · ")}
-          </span>
-        )}
-      </Notice>
+      <div className="flex flex-col items-center gap-4">
+        <Notice>Weather is off until this browser is set up.</Notice>
+
+        <p className="flex flex-wrap items-center justify-center gap-3 font-mono text-[0.62rem] tracking-[0.26em] uppercase">
+          <span className="text-ink/35">Missing</span>
+          {missing.map((item) => (
+            <Fragment key={item}>
+              <Divider />
+              <span className="text-accent/80">{item}</span>
+            </Fragment>
+          ))}
+        </p>
+
+        <Action onClick={onConfigure}>Open settings</Action>
+      </div>
     );
   }
 
@@ -80,15 +109,11 @@ export const WeatherReadout = ({
     return (
       <div className="flex flex-col items-center gap-3">
         <Notice>{error ?? "Weather unavailable"}</Notice>
-        <motion.button
-          type="button"
-          onClick={onRefresh}
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.96 }}
-          className="text-accent/80 hover:text-accent font-mono text-[0.6rem] tracking-[0.3em] uppercase"
-        >
-          Retry
-        </motion.button>
+        <span className="flex items-center gap-4">
+          <Action onClick={onRefresh}>Retry</Action>
+          <Divider />
+          <Action onClick={onConfigure}>Settings</Action>
+        </span>
       </div>
     );
   }
