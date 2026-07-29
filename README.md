@@ -1,6 +1,6 @@
 # Atmos
 
-A Chrome home page that reacts to the weather outside. The sky palette, the
+A Chrome new tab page that reacts to the weather outside. The sky palette, the
 particle field and the accent colour are all derived from the current
 OpenWeatherMap conditions and the time relative to your actual sunrise and
 sunset — so midnight rain and a clear morning are visibly different pages.
@@ -33,12 +33,12 @@ from inside the page. Open the gear in the bottom-right corner (or **Open
 settings**, which sits under the clock next to a list of whatever is still
 missing) and fill in:
 
-| Setting              | Required | Notes                                                                              |
-| -------------------- | -------- | ---------------------------------------------------------------------------------- |
-| OpenWeatherMap key   | yes      | From https://home.openweathermap.org/api_keys — new keys take ~10 min to activate. |
-| Latitude / Longitude | yes      | Type them, or press **Use my location** to fill both from the browser.             |
-| Units                | no       | Metric (default), Imperial, or Kelvin.                                             |
-| Background image     | no       | Image URL or a path under `public/`. Empty = animated gradient.                    |
+| Setting              | Required | Notes                                                                                                    |
+| -------------------- | -------- | -------------------------------------------------------------------------------------------------------- |
+| OpenWeatherMap key   | yes      | From [your API keys page](https://home.openweathermap.org/api_keys) — new keys take ~10 min to activate. |
+| Latitude / Longitude | yes      | Type them, or press **Use my location** to fill both from the browser.                                   |
+| Units                | no       | Metric (default), Imperial, or Kelvin.                                                                   |
+| Background image     | no       | Image URL or a path under `public/`. Empty = animated gradient.                                          |
 
 Everything is saved in `localStorage` under `atmos:settings` and applies
 immediately — no reload, no restart. Changing the location or units retires the
@@ -59,21 +59,26 @@ opening tabs repeatedly costs nothing. Once it expires the next load refetches.
 There is deliberately no manual refresh control; the only retry lives in the
 error state, when there is nothing cached to show.
 
-## Using it as your Chrome home page
+## Installing it as your new tab page
 
-Build and serve it, then point Chrome at the URL:
+`public/manifest.json` is an MV3 manifest with a `chrome_url_overrides.newtab`
+entry, and Vite copies it into `dist/` — so the build _is_ the extension.
 
 ```bash
 pnpm build
-pnpm preview   # http://localhost:4173
 ```
 
-In Chrome: **Settings → On startup → Open a specific page**, and
-**Settings → Appearance → Show home button** → enter the URL.
+Then in Chrome: go to `chrome://extensions`, enable **Developer mode**, click
+**Load unpacked** and select the `dist` folder. Open a new tab and set your key
+from the gear in the bottom-right corner.
 
-Chrome only lets extensions replace the _new tab_ page, so for that you would
-need to wrap `dist/` in a small extension with a `chrome_url_overrides.newtab`
-manifest entry.
+Every push to `main` attaches `atmos.zip` — the same `dist/` folder — to the
+`latest` release, so you can unzip that and **Load unpacked** it without
+building anything.
+
+To use it as a plain home page instead, serve `dist/` (`pnpm preview` runs it on
+http://localhost:4173) and point **Settings → On startup → Open a specific
+page** and **Settings → Appearance → Show home button** at that URL.
 
 ## Bookmarks
 
@@ -109,7 +114,7 @@ To preview a palette you're not currently living in, hard-code `mood` and
 
 ## Layout
 
-```
+```text
 src/
 ├── app.tsx                     page shell; owns the clock and weather state
 ├── components/
