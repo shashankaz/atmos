@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#010704" />
+      <stop offset="0.44" stop-color="#03150e" />
+      <stop offset="0.78" stop-color="#082c1e" />
+      <stop offset="1" stop-color="#0f4530" />
+    </linearGradient>
+
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#4ade80" stop-opacity="0.6" />
+      <stop offset="1" stop-color="#4ade80" stop-opacity="0" />
+    </radialGradient>
+
+    <linearGradient id="disc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d6ffe9" />
+      <stop offset="1" stop-color="#4ade80" />
+    </linearGradient>
+
+    <clipPath id="tile">
+      <rect width="32" height="32" rx="7.5" />
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#tile)">
+    <rect width="32" height="32" fill="url(#sky)" />
+    <ellipse cx="16" cy="22" rx="18" ry="9.5" fill="url(#glow)" />
+    <circle cx="16" cy="19.6" r="6.6" fill="url(#disc)" />
+    <rect y="22.5" width="32" height="9.5" fill="#010704" fill-opacity="0.84" />
+    <rect y="21.5" width="32" height="1.2" fill="#a9f0a2" fill-opacity="0.95" />
+  </g>
+</svg>
