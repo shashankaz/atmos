@@ -7,5 +7,6 @@
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
+  "permissions": ["geolocation"],
   "host_permissions": ["https://api.openweathermap.org/*"]
 }

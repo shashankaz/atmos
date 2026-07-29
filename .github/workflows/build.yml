@@ -1,4 +1,4 @@
-name: Build Extension
+name: Build Atmos
 
 on:
   push:
@@ -28,8 +28,8 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Zip extension
-        run: zip -r extension.zip dist
+      - name: Zip build
+        run: zip -r atmos.zip dist
 
       - name: Update latest tag
         run: |
@@ -42,14 +42,19 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: Latest Build
+          name: Atmos — latest build
           body: |
             Automatically built from `${{ github.sha }}` on `${{ github.ref_name }}`.
 
             **Installation:**
-            1. Download `extension.zip` and unzip it
+            1. Download `atmos.zip` and unzip it
             2. Open Chrome and go to `chrome://extensions`
             3. Enable **Developer mode**
             4. Click **Load unpacked** and select the `dist` folder
-          files: extension.zip
+            5. Open a new tab, click the gear in the bottom-right corner, and add
+               your OpenWeatherMap key and coordinates
+
+            There is no build-time configuration: you supply your own key, which is
+            kept in that browser's `localStorage` and sent only to OpenWeatherMap.
+          files: atmos.zip
           make_latest: true
