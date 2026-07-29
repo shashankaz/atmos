@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Atmos — Weather New Tab",
+  "short_name": "Atmos",
+  "version": "1.0.0",
+  "description": "A new tab whose sky, palette and particles follow the real weather outside.",
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "host_permissions": ["https://api.openweathermap.org/*"]
+}
